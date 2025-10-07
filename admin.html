@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Админ – Добавление товаров</title>
+  <style>
+    body{font-family:Arial,sans-serif;padding:20px;background:#f0f4f8;}
+    .form{max-width:400px;margin:auto;background:white;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+    .form input, .form textarea, .form select, .form button{width:100%;margin:10px 0;padding:10px;font-size:16px;border-radius:8px;}
+    .preview img{max-width:120px;margin:5px 0;display:block;border-radius:8px;}
+    .product-preview{border:1px solid #ccc;padding:10px;margin:10px 0;border-radius:8px;background:white;display:flex;align-items:center;}
+    .product-preview img{margin-right:15px;width:80px;height:80px;object-fit:cover;}
+    .product-preview button{margin-left:auto;background:#ef4444;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;}
+    #saveBtn{background:#3b82f6;color:white;}
+  </style>
+</head>
+<body>
+<h1>Админ – Добавление товаров</h1>
+
+<div class="form" id="form">
+  <input type="text" id="name" placeholder="Название товара" required>
+  <input type="number" id="price" placeholder="Цена" required>
+  <input type="file" id="image" accept="image/*">
+  <textarea id="desc" placeholder="Описание"></textarea>
+  <select id="status">
+    <option value="in">В наличии</option>
+    <option value="out">Нет в наличии</option>
+  </select>
+  <button type="button" onclick="addProduct()">Добавить товар</button>
+  <button type="button" id="saveBtn" onclick="saveAll()">💾 Сохранить</button>
+</div>
+
+<div class="preview">
+  <h3>Превью товаров:</h3>
+  <div id="products"></div>
+</div>
+
+<script>
+  function getProducts(){ return JSON.parse(localStorage.getItem("products"))||[]; }
+  function saveProducts(products){ localStorage.setItem("products",JSON.stringify(products)); }
+
+  function addProduct(){
+    const name=document.getElementById("name").value;
+    const price=document.getElementById("price").value;
+    const fileInput=document.getElementById("image");
+    const desc=document.getElementById("desc").value;
+    const status=document.getElementById("status").value;
+
+    if(!name||!price||!fileInput.files[0]){ alert("Заполните все поля!"); return; }
+
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const imageData=e.target.result;
+      const product={id:Date.now(),name,price,image:imageData,desc,status};
+      const products=getProducts();
+      products.push(product);
+      saveProducts(products);
+      renderProducts();
+      document.getElementById("form").reset();
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+  }
+
+  function deleteProduct(id){
+    let products=getProducts();
+    products=products.filter(p=>p.id!==id);
+    saveProducts(products);
+    renderProducts();
+  }
+
+  function renderProducts(){
+    const products=getProducts();
+    const container=document.getElementById("products");
+    container.innerHTML="";
+    products.forEach(p=>{
+      container.innerHTML+=`
+        <div class="product-preview">
+          <img src="${p.image}" alt="${p.name}">
+          <div>
+            <strong>${p.name}</strong><br>
+            Цена: ${p.price} сом<br>
+            ${p.status==='in'?'В наличии ✅':'Нет в наличии ❌'}
+          </div>
+          <button onclick="deleteProduct(${p.id})">Удалить</button>
+        </div>`;
+    });
+  }
+
+  function saveAll(){
+    alert("Все товары сохранены! ✅ Теперь они будут видны на главной странице магазина.");
+  }
+
+  renderProducts();
+</script>
+</body>
+</html>
+    
